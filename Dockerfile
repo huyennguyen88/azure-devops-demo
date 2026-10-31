@@ -1,26 +1,7 @@
-
-# Stage 1: Build application
-FROM eclipse-temurin:21-jdk AS builder
-
-WORKDIR /app
-
-COPY gradlew .
-COPY gradle/ gradle/
-COPY build.gradle settings.gradle ./
-
-RUN chmod +x gradlew
-
-COPY src/ src/
-
-RUN ./gradlew --no-daemon bootJar
-
-# Stage 2: Run application
 FROM eclipse-temurin:21-jre
-
 WORKDIR /app
-
-COPY --from=builder /app/build/libs/*.jar app.jar
-
+ARG GIT_COMMIT=local
+ENV APP_VERSION=${GIT_COMMIT}
+COPY build/libs/app.jar /app/app.jar
 EXPOSE 8080
-
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

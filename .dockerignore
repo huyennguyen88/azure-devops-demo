@@ -1,6 +1,9 @@
-.gradle
-build
 .git
-.idea
-.vscode
-*.log
+.github
+.gradle
+src
+gradle
+build/*
+!build/libs/
+build/libs/*
+!build/libs/app.jar
