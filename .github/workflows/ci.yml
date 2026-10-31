@@ -44,3 +44,49 @@ jobs:
           name: test-reports
           path: build/reports/tests/
           if-no-files-found: ignore
+
+  docker-build:
+    name: Docker Build and Smoke Test
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+
+      - name: Build Docker image
+        run: docker build -t azure-devops-demo:ci .
+
+      - name: Start container
+        run: |
+          docker run -d --rm \
+            --name demo \
+            -p 8080:8080 \
+            azure-devops-demo:ci
+
+      - name: Smoke test
+        run: |
+          for i in {1..30}; do
+            if curl --fail --silent http://localhost:8080/hello; then
+              echo "Smoke test passed"
+              exit 0
+            fi
+            echo "Waiting for Spring Boot..."
+            sleep 2
+          done
+
+          echo "Smoke test failed"
+          docker logs demo
+          exit 1
+
+      - name: Show container logs
+        if: always()
+        run: docker logs demo 2>&1 || true
+
+      - name: Stop container
+        if: always()
+        run: docker stop demo || true
+
