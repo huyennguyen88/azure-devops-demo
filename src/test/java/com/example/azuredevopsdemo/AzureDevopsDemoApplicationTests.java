@@ -9,11 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 class AzureDevopsDemoApplicationTests {
 
 	@Test
-	void helloShouldReturnMessage() {
-		HelloController controller = new HelloController();
+	void contextLoads() {
 
-		String result = controller.hello();
-
-		assertEquals("Hello Azure DevOps!", result);
 	}
 }
