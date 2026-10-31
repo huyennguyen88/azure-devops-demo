@@ -16,7 +16,7 @@ concurrency:
 
 env:
   RESOURCE_GROUP: rg-azure-devops-demo
-  WEBAPP_NAME: app-devops-demo-2026h
+  WEBAPP_NAME: app-devops-demo-2026h-staging
   ACR_NAME: acrdevopsdemo2026h
   IMAGE_NAME: azure-devops-demo
 
@@ -60,11 +60,13 @@ jobs:
           az webapp config container set \
             --resource-group "$RESOURCE_GROUP" \
             --name "$WEBAPP_NAME" \
+            --slot staging \
             --container-image-name "$IMAGE"
 
           az webapp restart \
             --resource-group "$RESOURCE_GROUP" \
-            --name "$WEBAPP_NAME"
+            --name "$WEBAPP_NAME" \
+            --slot staging
 
       - name: Smoke test
         run: |
