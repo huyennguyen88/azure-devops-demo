@@ -16,7 +16,7 @@ concurrency:
 
 env:
   RESOURCE_GROUP: rg-azure-devops-demo
-  WEBAPP_NAME: app-devops-demo-2026h-staging
+  WEBAPP_NAME: app-devops-demo-2026h
   ACR_NAME: acrdevopsdemo2026h
   IMAGE_NAME: azure-devops-demo
 
@@ -70,7 +70,7 @@ jobs:
 
       - name: Smoke test
         run: |
-          URL="https://$WEBAPP_NAME.azurewebsites.net/hello"
+          URL="https://$WEBAPP_NAME-staging.azurewebsites.net/hello"
 
           for attempt in $(seq 1 20); do
             if curl --fail --silent --show-error \
