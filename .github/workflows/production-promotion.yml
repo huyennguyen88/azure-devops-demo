@@ -1,0 +1,76 @@
+name: Production Promotion
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: "Full 40-character Git SHA to promote"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  verify-promotion:
+    runs-on: ubuntu-latest
+    environment: production
+
+    env:
+      RESOURCE_GROUP: rg-azure-devops-demo
+      WEBAPP_NAME: app-devops-demo-2026h
+      ACR_NAME: acrdevopsdemo2026h
+      IMAGE_NAME: azure-devops-demo
+      EXPECTED_SHA: ${{ inputs.expected_sha }}
+
+    steps:
+      - name: Validate SHA
+        shell: bash
+        run: |
+          if [[ ! "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Expected a full 40-character Git SHA"
+            exit 1
+          fi
+
+      - name: Azure login using OIDC
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Verify Staging image
+        shell: bash
+        run: |
+          ACTUAL_IMAGE=$(az webapp config show \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$WEBAPP_NAME" \
+            --slot staging \
+            --query linuxFxVersion \
+            --output tsv)
+
+          EXPECTED_IMAGE="DOCKER|$ACR_NAME.azurecr.io/$IMAGE_NAME:$EXPECTED_SHA"
+
+          echo "Expected: $EXPECTED_IMAGE"
+          echo "Actual:   $ACTUAL_IMAGE"
+
+          test "$ACTUAL_IMAGE" = "$EXPECTED_IMAGE"
+
+      - name: Verify Staging runtime version
+        shell: bash
+        run: |
+          URL="https://$WEBAPP_NAME-staging.azurewebsites.net/version"
+
+          ACTUAL_SHA=$(curl --fail --silent \
+            --max-time 15 "$URL" | jq -r '.version // empty')
+
+          echo "Expected SHA: $EXPECTED_SHA"
+          echo "Runtime SHA:  $ACTUAL_SHA"
+
+          test "$ACTUAL_SHA" = "$EXPECTED_SHA"
+
+      - name: Dry-run result
+        run: |
+          echo "Production promotion pre-checks passed."
+          echo "DRY RUN ONLY: no slot swap executed."
