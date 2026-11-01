@@ -13,9 +13,21 @@ permissions:
   id-token: write
 
 jobs:
-  verify-promotion:
+  approval:
     runs-on: ubuntu-latest
     environment: production
+
+    steps:
+      - name: Approval granted
+        run: echo "Production approval granted."
+
+  verify-promotion:
+    needs: approval
+    runs-on: ubuntu-latest
+
+    concurrency:
+      group: azure-appservice-deployment
+      cancel-in-progress: false
 
     env:
       RESOURCE_GROUP: rg-azure-devops-demo

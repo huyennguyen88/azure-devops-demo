@@ -9,10 +9,6 @@ permissions:
   contents: read
   id-token: write
 
-concurrency:
-  group: azure-staging
-  cancel-in-progress: false
-
 env:
   RESOURCE_GROUP: rg-azure-devops-demo
   WEBAPP_NAME: app-devops-demo-2026h
@@ -22,6 +18,11 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
+    concurrency:
+      group: azure-appservice-deployment
+      cancel-in-progress: false
+
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
