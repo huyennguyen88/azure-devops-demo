@@ -8,6 +8,12 @@ on:
         required: true
         type: string
 
+      dry_run:
+        description: "Run preflight checks without promotion"
+        required: true
+        type: boolean
+        default: true
+
 permissions:
   contents: read
   id-token: write
@@ -74,6 +80,14 @@ jobs:
           test "$ACTUAL_SHA" = "$EXPECTED_SHA"
 
       - name: Dry-run result
+        if: ${{ inputs.dry_run }}
         run: |
           echo "Production promotion pre-checks passed."
           echo "DRY RUN ONLY: no slot swap executed."
+
+      - name: Promotion disabled
+        if: ${{ !inputs.dry_run }}
+        run: |
+          echo "Production promotion is not implemented yet."
+          echo "No slot swap will be executed."
+          exit 1
